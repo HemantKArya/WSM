@@ -70,7 +70,7 @@ $ wsm --name demo exec -- true   # warm exec, 10 runs
 ```
 
 GPU profile (`wsm create --gpu`, `wsm gui start`): macOS Tahoe 26.3 desktop in a host window, accelerated by reims-vgpu on Vulkan.
-Safari shows this repository; the Terminal window is the guest's.
+Native 1920x1080 frame from the VM: Terminal reports the paravirtual Metal device (`Apple Paravirtualized Graphics Device, Metal 2`), Safari is browsing normally.
 
 <p align="center"><img src="docs/images/gpu-desktop.png" alt="WSM GPU profile: macOS Tahoe with Safari and Terminal" width="900"></p>
 
