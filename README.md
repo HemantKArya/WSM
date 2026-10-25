@@ -1,8 +1,24 @@
-# wsm — Windows Subsystem for macOS (v0.1)
+<p align="center">
+  <img src="docs/images/social-preview.png" alt="WSM: Windows Subsystem for macOS" width="900">
+</p>
 
-Run a macOS Tahoe 26.3 (x86-64) development VM on Windows 11 the way WSL runs Linux: one command
-gives you a shell, the VM suspends to a file when you stop it and resumes in about two seconds, and
-an optional GPU profile gives an accelerated desktop in a host window.
+<h1 align="center">WSM: Windows Subsystem for macOS</h1>
+
+<p align="center">
+  macOS Tahoe 26.3 (x86-64) in a VM on Windows 11, the way WSL runs Linux.<br>
+  <b>One command</b> for a shell &middot; <b>suspend to a file, resume in ~2 s</b> &middot; <b>optional GPU desktop</b> &middot; nothing installed system-wide
+</p>
+
+<p align="center">
+  <a href="https://github.com/HemantKArya/WSM/releases">Download</a> &middot;
+  <a href="#see-it-run">See it run</a> &middot;
+  <a href="docs/DEPENDENCIES.md">What you need to download</a> &middot;
+  <a href="docs/ROADMAP.md">Roadmap</a> &middot;
+  <a href="RESULTS.md">Measurements</a>
+</p>
+
+> No Apple software is included. You build your own base image from a macOS Tahoe 26.3 installer you supply
+> (see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) for the exact source and checksum).
 
 Acceptance status and every measured number: [RESULTS.md](RESULTS.md). More: [docs/WRITEUP.md](docs/WRITEUP.md) (summary),
 [docs/ROADMAP.md](docs/ROADMAP.md) (known gaps and future work), [docs/AMD-OPENCORE-PATCHES.md](docs/AMD-OPENCORE-PATCHES.md),
@@ -51,7 +67,7 @@ $ wsm --name demo exec -- true   # warm exec, 10 runs
 GPU profile (`wsm create --gpu`, `wsm gui start`): macOS Tahoe 26.3 desktop in a host window, accelerated by reims-vgpu on Vulkan.
 Safari shows this repository; the Terminal window is the guest's.
 
-![WSM GPU profile: macOS Tahoe with Safari and Terminal](docs/images/gpu-desktop.png)
+<p align="center"><img src="docs/images/gpu-desktop.png" alt="WSM GPU profile: macOS Tahoe with Safari and Terminal" width="900"></p>
 
 ## How it works
 
