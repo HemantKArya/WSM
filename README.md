@@ -6,7 +6,7 @@ an optional GPU profile gives an accelerated desktop in a host window.
 
 Acceptance status and every measured number: [RESULTS.md](RESULTS.md). More: [docs/WRITEUP.md](docs/WRITEUP.md) (summary),
 [docs/ROADMAP.md](docs/ROADMAP.md) (known gaps and future work), [docs/AMD-OPENCORE-PATCHES.md](docs/AMD-OPENCORE-PATCHES.md),
-[docs/RELEASING.md](docs/RELEASING.md). The installable package (`wsm-setup.zip`) is a release asset, not in the repository.
+[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) (downloads and third-party software), [docs/RELEASING.md](docs/RELEASING.md). The installable package (`wsm-setup.zip`) is a release asset, not in the repository.
 
 ## How it works
 
@@ -42,8 +42,10 @@ wsm.exe  (CLI)  ── owner-only named pipe + JSON RPC ──  wsmd.exe (per-us
 - Windows 11, x86-64 CPU (AMD or Intel), 16 GB RAM recommended, ~40 GB free disk.
 - Windows features **Virtual Machine Platform** and **Windows Hypervisor Platform** enabled
   (`wsm doctor` checks; enabling them needs an administrator once).
-- A macOS Tahoe 26.3 installer image (for `wsm base build`), or a base image
-  built from one.
+- A macOS Tahoe 26.3 installer image (for `wsm base build` / `build-lite`), or a base image built from one.
+  Download it yourself: <https://archive.org/download/mac-os-tahoe-26.3/macOS%20Tahoe%2026.3.iso>
+  (sha256 `6737e096...d567`). WSM does not include it. Every other download, bundled component and
+  build tool, with exact sources, is listed in [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 
 No administrator rights are needed to run wsm.
 
