@@ -2,23 +2,28 @@
   <img src="docs/images/social-preview.png" alt="WSM: Windows Subsystem for macOS" width="900">
 </p>
 
-<h1 align="center">WSM: Windows Subsystem for macOS</h1>
+<h1 align="center">Windows Subsystem for macOS</h1>
 
 <p align="center">
-  macOS Tahoe 26.3 (x86-64) in a VM on Windows 11, the way WSL runs Linux.<br>
-  <b>One command</b> for a shell &middot; <b>suspend to a file, resume in ~2 s</b> &middot; <b>optional GPU desktop</b> &middot; nothing installed system-wide
-</p>
-
-<p align="center">
-  <a href="https://github.com/HemantKArya/WSM/releases">Download</a> &middot;
-  <a href="#see-it-run">See it run</a> &middot;
-  <a href="docs/DEPENDENCIES.md">What you need to download</a> &middot;
+  <a href="https://github.com/HemantKArya/WSM/releases">Releases</a> &middot;
+  <a href="#see-it-run">Screenshots</a> &middot;
+  <a href="docs/DEPENDENCIES.md">What to download</a> &middot;
   <a href="docs/ROADMAP.md">Roadmap</a> &middot;
   <a href="RESULTS.md">Measurements</a>
 </p>
 
-> No Apple software is included. You build your own base image from a macOS Tahoe 26.3 installer you supply
-> (see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) for the exact source and checksum).
+WSM is my experimental project to run macOS on Windows the way WSL2 runs Linux: type one command and you are in a
+shell, stop it and the whole VM is saved to a file, run it again and you are back in about two seconds. No installer
+wizard, no VM manager window, nothing added to Windows itself.
+
+The second goal is macOS GUI software with a real GPU behind it. The aim is hardware-accelerated graphics through
+Vulkan or Direct3D instead of a software framebuffer. Right now that works through Vulkan only (Metal calls are
+translated by reims-vgpu), and the macOS desktop shows up in one window rather than app by app. Direct3D is not
+done. It is early: v0.1, built and tested on one AMD laptop with an RTX 4050.
+
+macOS Tahoe 26.3 on x86-64 is as new as Intel macOS gets, so that is what this targets. I don't ship any Apple
+software. You bring your own installer and build a base image from it; the exact download and checksum are in
+[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 
 Acceptance status and every measured number: [RESULTS.md](RESULTS.md). More: [docs/WRITEUP.md](docs/WRITEUP.md) (summary),
 [docs/ROADMAP.md](docs/ROADMAP.md) (known gaps and future work), [docs/AMD-OPENCORE-PATCHES.md](docs/AMD-OPENCORE-PATCHES.md),
