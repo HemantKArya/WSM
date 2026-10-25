@@ -1,0 +1,33 @@
+$ wsm --name demo create
+wsm: generating this instance's OpenCore image
+wsm: generating SSH key and config disk
+created 'demo' (ssh port 59718)
+
+$ wsm --name demo start
+demo in 21.8s (cold)
+
+$ wsm --name demo exec -- sw_vers
+ProductName:		macOS
+ProductVersion:		26.3
+BuildVersion:		25D125
+
+$ wsm --name demo exec --root -- id -u
+0
+
+$ wsm --name demo run --detach -- sleep 600
+261025-130547-234 pid 240 log /Volumes/WSMData/Users/dev/.wsm/jobs/261025-130547-234/log
+
+$ wsm --name demo jobs
+261025-130547-234      running  pid 240    sleep 600
+
+$ wsm --name demo stop        # suspend to a file
+suspended: 2.2s, 1149 MB (migrate 2.2s, drain 0.0s, fsync 0.1s; QEMU exit 0.1s)
+
+$ wsm --name demo start       # resume
+demo in 2.3s (resume)
+
+$ wsm --name demo jobs        # same job, still running
+261025-130547-234      running  pid 240    sleep 600
+
+$ wsm --name demo exec -- true   # warm exec, 10 runs
+82 77 72 73 68 69 88 77 74 73 ms
