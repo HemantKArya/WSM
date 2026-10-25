@@ -1,0 +1,87 @@
+# Carry a vCPU's undelivered exception (e.g. #PF + CR2) through save/restore like KVM vcpu events; WHPX dropped it (round 3 P1).
+diff --git a/target/i386/whpx/whpx-all.c b/target/i386/whpx/whpx-all.c
+index 54ea1d5..87767fb 100644
+--- a/target/i386/whpx/whpx-all.c
++++ b/target/i386/whpx/whpx-all.c
+@@ -1128,6 +1128,55 @@ void whpx_get_registers(CPUState *cpu, WHPXStateLevel level)
+         whpx_apic_get(x86_cpu->apic_state);
+     }
+ 
++    /*
++     * WSM: a vCPU stopped for a save can hold an exception Hyper-V has not
++     * delivered yet (round 3: #PF with CR2 in the event parameter, seen in
++     * most busy saves). Record it the way KVM's vcpu events do, so the
++     * migration stream carries it and whpx_inject_exceptions() re-delivers
++     * it after a restore. It stays "pending" (not "injected") here, so a
++     * plain stop/cont doesn't inject it a second time.
++     */
++    if (!runstate_is_running() && !env->exception_injected) {
++        static const WHV_REGISTER_NAME ev_names[] = {
++            WHvRegisterPendingInterruption, WHvRegisterInterruptState,
++            WHvRegisterPendingEvent,
++        };
++        WHV_REGISTER_VALUE ev[ARRAY_SIZE(ev_names)];
++
++        env->exception_pending = 0;
++        env->exception_has_payload = 0;
++        env->exception_nr = -1;
++        if (SUCCEEDED(whp_dispatch.WHvGetVirtualProcessorRegisters(
++                whpx->partition, cpu->cpu_index, ev_names,
++                ARRAY_SIZE(ev_names), ev))) {
++            if (ev[2].ExceptionEvent.EventPending &&
++                ev[2].ExceptionEvent.EventType == WHvX64PendingEventException) {
++                env->exception_pending = 1;
++                env->exception_nr = ev[2].ExceptionEvent.Vector;
++                env->has_error_code = ev[2].ExceptionEvent.DeliverErrorCode;
++                env->error_code = ev[2].ExceptionEvent.ErrorCode;
++                env->exception_has_payload =
++                    env->exception_nr == EXCP0E_PAGE ||
++                    env->exception_nr == EXCP01_DB;
++                env->exception_payload =
++                    ev[2].ExceptionEvent.ExceptionParameter;
++            }
++            if (getenv("WSM_WHPX_EVENT_TRACE") &&
++                (ev[0].PendingInterruption.InterruptionPending ||
++                 ev[1].InterruptState.InterruptShadow ||
++                 ev[1].InterruptState.NmiMasked ||
++                 ev[2].ExceptionEvent.EventPending)) {
++                fprintf(stderr, "wsm-event cpu=%d pi=%016llx is=%016llx "
++                        "pe=%016llx:%016llx rip=%016llx\n", cpu->cpu_index,
++                        (unsigned long long)ev[0].Reg64,
++                        (unsigned long long)ev[1].Reg64,
++                        (unsigned long long)ev[2].Reg128.High64,
++                        (unsigned long long)ev[2].Reg128.Low64,
++                        (unsigned long long)env->eip);
++            }
++        }
++    }
++
+     x86_update_hflags(env);
+ }
+ 
+@@ -2377,6 +2426,12 @@ static void whpx_inject_exceptions(CPUState* cpu)
+         reg.ExceptionEvent.ErrorCode = env->error_code;
+         if (env->exception_has_payload) {
+             reg.ExceptionEvent.ExceptionParameter = env->exception_payload;
++        } else if (env->exception_nr == EXCP0E_PAGE) {
++            /*
++             * WSM: cpu_pre_save() moved a migrated #PF's payload into CR2
++             * and the payload flag isn't migrated; deliver the same address.
++             */
++            reg.ExceptionEvent.ExceptionParameter = env->cr[2];
+         }
+         whpx_set_reg(cpu, WHvRegisterPendingEvent, reg);
+     }
+@@ -2938,6 +2993,12 @@ static void whpx_cpu_update_state(void *opaque, bool running, RunState state)
+ 
+     if (running) {
+         env->tsc_valid = false;
++        /* WSM: a pending event recorded while stopped is Hyper-V's again. */
++        if (env->exception_pending) {
++            env->exception_pending = 0;
++            env->exception_has_payload = 0;
++            env->exception_nr = -1;
++        }
+     } else if (env_cpu(env)->cpu_index == 0 &&
+                whp_dispatch.WHvSuspendPartitionTime) {
+         /*

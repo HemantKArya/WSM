@@ -1,0 +1,29 @@
+# Build output and environments
+/target/
+.venv/
+__pycache__/
+*.py[oc]
+*.egg-info
+wheels/
+
+# Release artifacts: built by scripts/release.ps1, attached to a GitHub release, never committed
+/dist/
+
+# Local workspace: portable toolchains, scratch builds, instances, logs, third-party clones
+/tools/
+/work/
+/logs/
+/refs/
+/build/
+
+# Apple content and disk images must never be committed or released
+*.iso
+*.dmg
+*.pkg
+*.qcow2
+*.img
+*.raw
+*.fd
+state.bin
+macOS*.iso
+NUL

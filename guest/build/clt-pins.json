@@ -1,0 +1,17 @@
+[
+  {
+    "name": "CLTools_Executables_Universal.pkg",
+    "url": "https://swcdn.apple.com/content/downloads/33/19/140-17812-A_21ZLMMLY4E/zu3xwktttpoe71qiawhzgzvqss6rovawsa/CLTools_Executables_Universal.pkg",
+    "sha256": "a1486ac20337956d9553de7c4cc6bf58fe7bd1ad7c1d76dec68901c96fb4572e"
+  },
+  {
+    "name": "CLTools_macOSLMOS_SDK.pkg",
+    "url": "https://swcdn.apple.com/content/downloads/33/19/140-17812-A_21ZLMMLY4E/zu3xwktttpoe71qiawhzgzvqss6rovawsa/CLTools_macOSLMOS_SDK.pkg",
+    "sha256": "07835d08fcdc4a57b930c9a7f5c91df18666d4fa246ae994c8850cfe5aab9753"
+  },
+  {
+    "name": "CLTools_macOSNMOS_SDK.pkg",
+    "url": "https://swcdn.apple.com/content/downloads/33/19/140-17812-A_21ZLMMLY4E/zu3xwktttpoe71qiawhzgzvqss6rovawsa/CLTools_macOSNMOS_SDK.pkg",
+    "sha256": "debe353b27a13cd678b26ab216a040acf07b62c0639d8ac522df4ca07d121eb2"
+  }
+]

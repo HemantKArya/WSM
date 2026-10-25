@@ -1,0 +1,26 @@
+# Suspend WHPX partition time (TSC) while the VM is paused, so stop/cont doesn't look like a CPU timeout to XNU (round 3 P1 known issue).
+diff --git a/target/i386/whpx/whpx-all.c b/target/i386/whpx/whpx-all.c
+index f2587b0..54ea1d5 100644
+--- a/target/i386/whpx/whpx-all.c
++++ b/target/i386/whpx/whpx-all.c
+@@ -2938,6 +2938,20 @@ static void whpx_cpu_update_state(void *opaque, bool running, RunState state)
+ 
+     if (running) {
+         env->tsc_valid = false;
++    } else if (env_cpu(env)->cpu_index == 0 &&
++               whp_dispatch.WHvSuspendPartitionTime) {
++        /*
++         * WSM: stop guest time (reference time + TSC) while the VM is paused,
++         * as kvmclock does under KVM. Otherwise a CPU waiting on an IPI ack
++         * when `stop` hit sees the pause as a timeout after `cont` (XNU
++         * "NMIPI for unresponsive processor: TLB flush timeout"). Partition
++         * time resumes by itself when the first vCPU runs again.
++         */
++        HRESULT hr = whp_dispatch.WHvSuspendPartitionTime(whpx_global.partition);
++
++        if (FAILED(hr)) {
++            warn_report("WHPX: Failed to suspend partition time, hr=%08lx", hr);
++        }
+     }
+ }
+ 

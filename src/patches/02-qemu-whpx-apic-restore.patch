@@ -1,0 +1,82 @@
+# Restore WHPX in-kernel APIC from Hyper-V's own page plus guest-controlled registers: the zero-built page was rejected (c0350005) on resume (round 3 P1).
+diff --git a/target/i386/whpx/whpx-apic.c b/target/i386/whpx/whpx-apic.c
+index 74c39fd..f0d9fca 100644
+--- a/target/i386/whpx/whpx-apic.c
++++ b/target/i386/whpx/whpx-apic.c
+@@ -197,14 +197,53 @@ static void whpx_apic_vapic_base_update(APICCommonState *s)
+     /* not implemented yet */
+ }
+ 
++/*
++ * WSM: whpx_put_apic_state() builds the page from zero, so the registers QEMU's
++ * model doesn't keep (version, current count, PPR/APR) are written as 0 and an
++ * x2APIC LDR is rebuilt in xAPIC format. Hyper-V rejects that page on restore
++ * (c0350005). Start from the page Hyper-V itself reports for this vCPU (valid by
++ * construction) and copy over only the registers the guest controls.
++ */
++static void whpx_merge_apic_state(APICCommonState *s, struct whpx_lapic_state *hv,
++                                  const struct whpx_lapic_state *q)
++{
++    static const int writable[] = { 0x08, 0x0f, 0x28, 0x30, 0x31, 0x38, 0x3e };
++    int i;
++
++    for (i = 0; i < ARRAY_SIZE(writable); i++) {
++        hv->fields[writable[i]].data = q->fields[writable[i]].data;
++    }
++    for (i = 0x10; i < 0x28; i++) {      /* ISR, TMR, IRR */
++        hv->fields[i].data = q->fields[i].data;
++    }
++    for (i = 0; i < APIC_LVT_NB; i++) {
++        hv->fields[0x32 + i].data = q->fields[0x32 + i].data;
++    }
++    if (!(s->apicbase & MSR_IA32_APICBASE_EXTD)) {
++        /* xAPIC: ID, LDR and DFR are software-written. */
++        hv->fields[0x02].data = q->fields[0x02].data;
++        hv->fields[0x0d].data = q->fields[0x0d].data;
++        hv->fields[0x0e].data = q->fields[0x0e].data;
++    }
++    /* QEMU's model treats the timer as reloaded at the last sync. */
++    hv->fields[0x39].data = q->fields[0x38].data;
++}
++
+ static void whpx_apic_put(CPUState *cs, run_on_cpu_data data)
+ {
+     APICCommonState *s = data.host_ptr;
+-    struct whpx_lapic_state kapic;
++    struct whpx_lapic_state kapic, qapic;
+     HRESULT hr;
+ 
+     whpx_put_apic_base(CPU(s->cpu), s->apicbase);
+-    whpx_put_apic_state(s, &kapic);
++    whpx_put_apic_state(s, &qapic);
++    hr = whp_dispatch.WHvGetVirtualProcessorInterruptControllerState2(
++        whpx_global.partition, cs->cpu_index, &kapic, sizeof(kapic), NULL);
++    if (SUCCEEDED(hr)) {
++        whpx_merge_apic_state(s, &kapic, &qapic);
++    } else {
++        kapic = qapic;
++    }
+ 
+     hr = whp_dispatch.WHvSetVirtualProcessorInterruptControllerState2(
+         whpx_global.partition,
+@@ -212,10 +251,19 @@ static void whpx_apic_put(CPUState *cs, run_on_cpu_data data)
+         &kapic,
+         sizeof(kapic));
+     if (FAILED(hr)) {
++        int i;
++
+         fprintf(stderr,
+             "WHvSetVirtualProcessorInterruptControllerState failed: %08lx\n",
+              hr);
+-
++        /* WSM: show what was rejected, next to what QEMU's model held. */
++        for (i = 0; i < 0x40; i++) {
++            if (kapic.fields[i].data || qapic.fields[i].data) {
++                fprintf(stderr, "wsm-apic cpu=%d reg=%03x set=%08x qemu=%08x\n",
++                        cs->cpu_index, i << 4, kapic.fields[i].data,
++                        qapic.fields[i].data);
++            }
++        }
+         abort();
+     }
+ }

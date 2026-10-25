@@ -1,0 +1,91 @@
+# Per-user LaunchAgents disabled for the instance user (uid 501) on HEADLESS instances only
+# (wsm-firstboot.sh writes them to disabled.501.plist when there is no paravirtual GPU).
+# Round 3 P6: an SSH login starts the user's launchd domain; these agents kept the guest at load 7-24
+# for minutes after every boot (iconservicesagent alone: 6 CPU-min), making `wsm exec true` ~2 s and
+# a clang hello 89 s. Kept on purpose (needed by dev tools): cfprefsd, distnoted, lsd, secd, secinitd,
+# trustd (TLS for git/curl), TrustEvaluationAgent, CoreAuthentication, ctkd, pkd, containermanagerd,
+# fskit, usermanagerhelper, KeychainStasher, netauth.
+# AI / Siri / knowledge
+com.apple.Siri.agent
+com.apple.SiriTTSTrainingAgent
+com.apple.siriactionsd
+com.apple.siriinferenced
+com.apple.siriknowledged
+com.apple.sirittsd
+com.apple.assistant_cdmd
+com.apple.assistant_service
+com.apple.assistantd
+com.apple.AddressBook.AssistantService
+com.apple.intelligencecontextd
+com.apple.intelligenceflowd
+com.apple.intelligenceplatformd
+com.apple.intelligencetasksd
+com.apple.knowledge-agent
+com.apple.knowledgeconstructiond
+com.apple.BiomeAgent
+com.apple.biomesyncd
+com.apple.duetexpertd
+com.apple.suggestd
+com.apple.privatecloudcomputed
+com.apple.parsec-fbf
+com.apple.parsecd
+# Spotlight / indexing (user side)
+com.apple.Spotlight
+com.apple.corespotlightd
+com.apple.corespotlightservice
+com.apple.managedcorespotlightd
+com.apple.spotlightknowledged
+com.apple.spotlightknowledged.importer
+com.apple.spotlightknowledged.updater
+com.apple.mdworker.mail
+com.apple.mdworker.shared
+com.apple.mdworker.single.arm64
+com.apple.mdworker.single.x86_64
+com.apple.mdworker.sizing
+com.apple.coreimportd
+# Icons, fonts, speech, GL shader compiler (GUI only)
+com.apple.iconservices.iconservicesagent
+com.apple.FontValidator
+com.apple.speech.speechsynthesisd.arm64
+com.apple.speech.speechsynthesisd.x86_64
+# Accounts, iCloud, media, telephony, games, sharing
+com.apple.accountsd
+com.apple.amsaccountsd
+com.apple.amsengagementd
+com.apple.amsondevicestoraged
+com.apple.amp.mediasharingd
+com.apple.itunescloudd
+com.apple.cloudd
+com.apple.cloudpaird
+com.apple.cloudphotod
+com.apple.CloudSettingsSyncAgent
+com.apple.iCloudNotificationAgent
+com.apple.iCloudUserNotifications
+com.apple.icloudmailagent
+com.apple.icloud.findmydeviced.findmydevice-user-agent
+com.apple.icloud.searchpartyuseragent
+com.apple.protectedcloudstorage.protectedcloudkeysyncing
+com.apple.keychainsharingmessagingd
+com.apple.familycircled
+com.apple.contactsd
+com.apple.calaccessd
+com.apple.photoanalysisd
+com.apple.photolibraryd
+com.apple.newsd
+com.apple.weatherd
+com.apple.telephonyutilities.callservicesd
+com.apple.CommCenter-osx
+com.apple.callhistoryd
+com.apple.callintelligenced
+com.apple.CallHistoryPluginHelper
+com.apple.CallHistorySyncHelper
+com.apple.GameController.gamecontrolleragentd
+com.apple.GamePolicyAgent
+com.apple.gamed
+com.apple.gamesaved
+com.apple.sharingd
+com.apple.screensharing.MessagesAgent
+com.apple.screensharing.agent
+com.apple.screensharing.menuextra
+com.apple.mbbackgrounduseragent
+com.apple.installandsetup.migrationhelper.user

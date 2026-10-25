@@ -1,0 +1,33 @@
+# After loading an incoming VM, clear WHPX InternalActivityState so APs left in StartupSuspend by the pre-load reset run again (round 3 P1).
+diff --git a/target/i386/whpx/whpx-all.c b/target/i386/whpx/whpx-all.c
+index 81b1f92..f2587b0 100644
+--- a/target/i386/whpx/whpx-all.c
++++ b/target/i386/whpx/whpx-all.c
+@@ -637,6 +637,27 @@ void whpx_set_registers(CPUState *cpu, WHPXStateLevel level)
+         whpx_set_tsc(cpu);
+     }
+ 
++    /*
++     * WSM: an incoming VM is reset first, which parks every halted AP in
++     * StartupSuspend (wait for INIT/SIPI). InternalActivityState is not in
++     * the migration stream, so after loading a running guest the APs would
++     * wait for a SIPI that never comes. Let every vCPU run; a spurious wake
++     * from HLT just returns to the guest's idle loop.
++     */
++    if (level == WHPX_LEVEL_FULL_STATE && whpx_irqchip_in_kernel() &&
++        runstate_check(RUN_STATE_INMIGRATE)) {
++        WHV_REGISTER_NAME act_name = WHvRegisterInternalActivityState;
++        WHV_REGISTER_VALUE act = {0};
++
++        hr = whp_dispatch.WHvSetVirtualProcessorRegisters(
++            whpx->partition, cpu->cpu_index, &act_name, 1, &act);
++        if (FAILED(hr)) {
++            error_report("WHPX: failed to clear cpu%u activity state, hr=%08lx",
++                         cpu->cpu_index, hr);
++        }
++        cpu->halted = false;
++    }
++
+     memset(&vcxt, 0, sizeof(struct whpx_register_set));
+ 
+     v86 = (env->eflags & VM_MASK);

@@ -1,0 +1,55 @@
+# Allow QEMU-WHPX migration (WSM_WHPX_ALLOW_MIGRATION=1) and give all vCPUs one TSC on restore: needed for suspend-to-file (round 2 G4).
+diff --git a/target/i386/whpx/whpx-all.c b/target/i386/whpx/whpx-all.c
+index bb1eb09..83f63ef 100644
+--- a/target/i386/whpx/whpx-all.c
++++ b/target/i386/whpx/whpx-all.c
+@@ -398,6 +398,24 @@ static int whpx_set_tsc(CPUState *cpu)
+     }
+ 
+     tsc_val.Reg64 = cpu_env(cpu)->tsc;
++    if (getenv("WSM_WHPX_ALLOW_MIGRATION")) {
++        /*
++         * WSM: the saved TSCs were read one vCPU after another while partition
++         * time kept running, so they sit ~0.4 ms apart; writing them back as-is
++         * leaves the guest's CPUs out of sync and XNU sees time go backwards
++         * (fq_codel `now >= *pkt_enq_time`). Give every vCPU the largest one.
++         */
++        CPUState *other;
++
++        CPU_FOREACH(other) {
++            if (cpu_env(other)->tsc > tsc_val.Reg64) {
++                tsc_val.Reg64 = cpu_env(other)->tsc;
++            }
++        }
++    }
++    if (getenv("WSM_WHPX_TSC_TRACE")) {  /* WSM: G4 suspend/resume time debugging */
++        fprintf(stderr, "wsm-tsc set cpu=%d tsc=%llu\n", cpu->cpu_index, (unsigned long long)tsc_val.Reg64);
++    }
+     hr = whp_dispatch.WHvSetVirtualProcessorRegisters(
+         whpx->partition, cpu->cpu_index, &tsc_reg, 1, &tsc_val);
+     if (FAILED(hr)) {
+@@ -695,6 +713,9 @@ static int whpx_get_tsc(CPUState *cpu)
+     }
+ 
+     cpu_env(cpu)->tsc = tsc_val.Reg64;
++    if (getenv("WSM_WHPX_TSC_TRACE")) {  /* WSM: G4 suspend/resume time debugging */
++        fprintf(stderr, "wsm-tsc get cpu=%d tsc=%llu\n", cpu->cpu_index, (unsigned long long)tsc_val.Reg64);
++    }
+     return 0;
+ }
+ 
+@@ -3988,7 +4009,13 @@ int whpx_init_vcpu(CPUState *cpu)
+     /* Add migration blockers for all unsupported features of the
+      * Windows Hypervisor Platform
+      */
+-    if (whpx_migration_blocker == NULL) {
++    /*
++     * WSM: WSM_WHPX_ALLOW_MIGRATION=1 skips the blocker so a stopped VM can be
++     * saved with `migrate file:` (one pass, no dirty tracking needed) and
++     * restored with -incoming. Experimental: CPU state is whatever
++     * whpx_get_registers syncs (GPRs, segments, CRs, MSRs QEMU knows, XSAVE).
++     */
++    if (whpx_migration_blocker == NULL && !getenv("WSM_WHPX_ALLOW_MIGRATION")) {
+         error_setg(&whpx_migration_blocker,
+                "State blocked due to missing dirty memory tracking support,"
+                "And some system register/state save-restore ");

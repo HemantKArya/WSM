@@ -1,0 +1,20 @@
+WHPX: take the BQL around ioapic_eoi_broadcast() on APIC EOI exits; unlocked it races device IRQs and loses level-triggered interrupts (AHCI stall).
+--- a/target/i386/whpx/whpx-all.c
++++ b/target/i386/whpx/whpx-all.c
+@@ -2570,7 +2570,16 @@
+ 
+         case WHvRunVpExitReasonX64ApicEoi:
+             assert(whpx_irqchip_in_kernel());
++            /*
++             * The vCPU loop runs without the BQL, but the userspace IOAPIC is
++             * also updated by device interrupts on the main loop under the BQL.
++             * Unlocked, a level-triggered line raised while this EOI clears
++             * Remote IRR can end with IRR=1, Remote IRR=0 and nothing delivered:
++             * the device (seen: AHCI on GSI 22) never gets serviced again.
++             */
++            bql_lock();
+             ioapic_eoi_broadcast(vcpu->exit_ctx.ApicEoi.InterruptVector);
++            bql_unlock();
+             break;
+ 
+         case WHvRunVpExitReasonX64Halt:

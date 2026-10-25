@@ -1,0 +1,15 @@
+[package]
+name = "wsm-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+sha2.workspace = true
+fatfs = "0.3"
+plist = "1"
+interprocess = { version = "=2.4.7", default-features = false }
+widestring = "=1.2.1"

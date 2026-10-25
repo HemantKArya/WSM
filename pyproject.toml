@@ -1,0 +1,21 @@
+[project]
+name = "wsm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Hemant KArya", email = "iamhemantindia@protonmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "cheroot>=11.1.2",
+    "impacket>=0.13.1",
+    "wsgidav>=4.3.5",
+]
+
+[project.scripts]
+wsm = "wsm:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
