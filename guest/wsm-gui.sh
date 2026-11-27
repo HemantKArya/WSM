@@ -71,6 +71,7 @@ bring_up_windowserver() {
 }
 
 start_session() {
+    pkill -9 -x "Installer Progress" 2>/dev/null || true
     session_up && return 0
     bring_up_windowserver
     defaults write /Library/Preferences/com.apple.loginwindow autoLoginUser "$USER_NAME"
@@ -81,6 +82,7 @@ start_session() {
     i=0
     while [ $i -lt 120 ]; do
         if session_up; then
+            pkill -9 -x "Installer Progress" 2>/dev/null || true
             sleep 3   # let Dock/WallpaperAgent settle before changing preferences
             apply_user_preferences
             return 0
