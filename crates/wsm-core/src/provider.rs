@@ -110,6 +110,10 @@ pub fn build_argv(m: &Manifest, d: &InstanceDirs, rt: &Runtime, incoming: bool) 
     p("-device"); p("qemu-xhci,id=xhci,addr=0x5,p2=8,p3=6,conditional-intr-mapping=on");
     p("-device"); p("usb-kbd,id=kbd,bus=xhci.0");
     p("-device"); p("usb-tablet,id=tablet,bus=xhci.0");
+    if m.gpu {
+        p("-audiodev"); p("sdl,id=snd0");
+        p("-device"); p("usb-audio,id=audio,bus=xhci.0,audiodev=snd0");
+    }
     p("-display"); p("none");
     p("-monitor"); p("none");
     p("-chardev"); p(&format!("socket,id=ser0,path={},server=on,wait=off", fwd(&d.serial_sock())));
